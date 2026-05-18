@@ -1,0 +1,3 @@
+secrets/
+srcs/requirements/nginx/tools/nginx.crt
+srcs/requirements/nginx/tools/nginx.key

@@ -1,0 +1,3 @@
+# Excluimos archivos que no necesita el build de Docker
+*.md
+.git
