@@ -35,6 +35,9 @@ $$(. /etc/os-release && echo "$$VERSION_CODENAME") stable" \
 		sudo apt-get update -y; \
 		sudo apt-get install -y docker-ce docker-ce-cli containerd.io \
 			docker-buildx-plugin docker-compose-plugin; \
+		sudo systemctl enable docker; \
+		sudo systemctl start docker; \
+		sudo groupadd -f docker; \
 		sudo usermod -aG docker $(USER); \
 		echo "Docker instalado correctamente."; \
 	fi
