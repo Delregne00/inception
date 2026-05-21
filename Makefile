@@ -5,22 +5,11 @@
 # ============================================================
 
 DATA_DIR	= /home/$(USER)/data
-COMPOSE		= docker compose -f srcs/docker-compose.yml
 DOMAIN		= acarranz.42.fr
 
-# ────────────────────────────────────────────────────────────
-# all: Punto de entrada único.
-#   1. Instala Docker si no está (primera vez en VM limpia).
-#   2. Añade el dominio a /etc/hosts si no existe ya.
-#   3. Crea los directorios para los volúmenes persistentes.
-#   4. Levanta los tres contenedores.
-#
-#   "sg docker" activa el grupo docker en la sesión actual
-#   sin necesidad de cerrar sesión tras instalar Docker.
-# ────────────────────────────────────────────────────────────
 all:
 	@if ! command -v docker > /dev/null 2>&1; then \
-		echo "Docker no encontrado. Instalando..."; \
+		echo "Instalando Docker..."; \
 		sudo apt-get update -y; \
 		sudo apt-get install -y ca-certificates curl gnupg; \
 		sudo install -m 0755 -d /etc/apt/keyrings; \
@@ -37,38 +26,27 @@ $$(. /etc/os-release && echo "$$VERSION_CODENAME") stable" \
 			docker-buildx-plugin docker-compose-plugin; \
 		sudo groupadd -f docker; \
 		sudo usermod -aG docker $(USER); \
-		sudo systemctl enable docker 2>/dev/null || true; \
-		sudo systemctl start docker 2>/dev/null || sudo service docker start; \
-		echo "Docker instalado correctamente."; \
 	fi
-	@grep -q "^LOGIN=" srcs/.env || echo "LOGIN=$(USER)" >> srcs/.env
+	@sudo mkdir -p /etc/docker
+	@echo '{"dns": ["8.8.8.8", "8.8.4.4"]}' | sudo tee /etc/docker/daemon.json > /dev/null
+	@sudo systemctl enable docker 2>/dev/null || true
+	@sudo systemctl start docker 2>/dev/null || sudo service docker start
 	@mkdir -p secrets
 	@if [ ! -f secrets/db_password.txt ]; then echo "Db_Password42!" > secrets/db_password.txt; fi
 	@if [ ! -f secrets/db_root_password.txt ]; then echo "Db_Root_Password42!" > secrets/db_root_password.txt; fi
 	@if [ ! -f secrets/credentials.txt ]; then echo "Wp_Admin_Password42!" > secrets/credentials.txt; fi
+	@grep -q "^LOGIN=" srcs/.env && sed -i "s/^LOGIN=.*/LOGIN=$(USER)/" srcs/.env || echo "LOGIN=$(USER)" >> srcs/.env
 	@if ! grep -q "$(DOMAIN)" /etc/hosts; then \
-		echo "Añadiendo $(DOMAIN) a /etc/hosts..."; \
 		echo "127.0.0.1 $(DOMAIN)" | sudo tee -a /etc/hosts; \
 	fi
 	@mkdir -p $(DATA_DIR)/wordpress $(DATA_DIR)/mariadb
 	sudo -E docker compose -f srcs/docker-compose.yml up -d --build
 
-# ────────────────────────────────────────────────────────────
-# down: Para y elimina los contenedores (sin borrar datos).
-# ────────────────────────────────────────────────────────────
 down:
 	sudo -E docker compose -f srcs/docker-compose.yml down
 
-# ────────────────────────────────────────────────────────────
-# re: Para todo y reconstruye desde cero.
-#     Útil tras modificar Dockerfiles o scripts.
-# ────────────────────────────────────────────────────────────
 re: down all
 
-# ────────────────────────────────────────────────────────────
-# clean: Elimina contenedores, imágenes y datos en disco.
-#        ⚠️  Borra la base de datos y archivos de WordPress.
-# ────────────────────────────────────────────────────────────
 clean: down
 	sudo -E docker system prune -af
 	sudo rm -rf $(DATA_DIR)
