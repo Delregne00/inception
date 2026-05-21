@@ -41,6 +41,10 @@ $$(. /etc/os-release && echo "$$VERSION_CODENAME") stable" \
 		sudo systemctl start docker 2>/dev/null || sudo service docker start; \
 		echo "Docker instalado correctamente."; \
 	fi
+	@mkdir -p secrets
+	@if [ ! -f secrets/db_password.txt ]; then echo "Db_Password42!" > secrets/db_password.txt; fi
+	@if [ ! -f secrets/db_root_password.txt ]; then echo "Db_Root_Password42!" > secrets/db_root_password.txt; fi
+	@if [ ! -f secrets/credentials.txt ]; then echo "Wp_Admin_Password42!" > secrets/credentials.txt; fi
 	@if ! grep -q "$(DOMAIN)" /etc/hosts; then \
 		echo "Añadiendo $(DOMAIN) a /etc/hosts..."; \
 		echo "127.0.0.1 $(DOMAIN)" | sudo tee -a /etc/hosts; \
