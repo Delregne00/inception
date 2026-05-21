@@ -41,6 +41,7 @@ $$(. /etc/os-release && echo "$$VERSION_CODENAME") stable" \
 		sudo systemctl start docker 2>/dev/null || sudo service docker start; \
 		echo "Docker instalado correctamente."; \
 	fi
+	@grep -q "^LOGIN=" srcs/.env || echo "LOGIN=$(USER)" >> srcs/.env
 	@mkdir -p secrets
 	@if [ ! -f secrets/db_password.txt ]; then echo "Db_Password42!" > secrets/db_password.txt; fi
 	@if [ ! -f secrets/db_root_password.txt ]; then echo "Db_Root_Password42!" > secrets/db_root_password.txt; fi
