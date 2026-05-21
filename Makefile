@@ -46,17 +46,13 @@ $$(. /etc/os-release && echo "$$VERSION_CODENAME") stable" \
 		echo "127.0.0.1 $(DOMAIN)" | sudo tee -a /etc/hosts; \
 	fi
 	@mkdir -p $(DATA_DIR)/wordpress $(DATA_DIR)/mariadb
-	@if id -nG $(USER) | grep -qw docker; then \
-		docker compose -f srcs/docker-compose.yml up -d --build; \
-	else \
-		sg docker -c "docker compose -f srcs/docker-compose.yml up -d --build"; \
-	fi
+	sudo docker compose -f srcs/docker-compose.yml up -d --build
 
 # ────────────────────────────────────────────────────────────
 # down: Para y elimina los contenedores (sin borrar datos).
 # ────────────────────────────────────────────────────────────
 down:
-	docker compose -f srcs/docker-compose.yml down
+	sudo docker compose -f srcs/docker-compose.yml down
 
 # ────────────────────────────────────────────────────────────
 # re: Para todo y reconstruye desde cero.
@@ -69,7 +65,7 @@ re: down all
 #        ⚠️  Borra la base de datos y archivos de WordPress.
 # ────────────────────────────────────────────────────────────
 clean: down
-	docker system prune -af
+	sudo docker system prune -af
 	sudo rm -rf $(DATA_DIR)
 
 fclean: clean
