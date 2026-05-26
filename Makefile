@@ -32,9 +32,11 @@ $$(. /etc/os-release && echo "$$VERSION_CODENAME") stable" \
 	@sudo systemctl enable docker 2>/dev/null || true
 	@sudo systemctl start docker 2>/dev/null || sudo service docker start
 	@mkdir -p secrets
-	@if [ ! -f secrets/db_password.txt ]; then echo "Db_Password42!" > secrets/db_password.txt; fi
-	@if [ ! -f secrets/db_root_password.txt ]; then echo "Db_Root_Password42!" > secrets/db_root_password.txt; fi
-	@if [ ! -f secrets/credentials.txt ]; then echo "Wp_Admin_Password42!" > secrets/credentials.txt; fi
+	@if [ ! -f secrets/db_password.txt ]; then \
+		echo "Db_Password42!" > secrets/db_password.txt; \
+		echo "Db_Root_Password42!" > secrets/db_root_password.txt; \
+		echo "Wp_Admin_Password42!" > secrets/credentials.txt; \
+	fi
 	@grep -q "^LOGIN=" srcs/.env && sed -i "s/^LOGIN=.*/LOGIN=$(USER)/" srcs/.env || echo "LOGIN=$(USER)" >> srcs/.env
 	@if ! grep -q "$(DOMAIN)" /etc/hosts; then \
 		echo "127.0.0.1 $(DOMAIN)" | sudo tee -a /etc/hosts; \
